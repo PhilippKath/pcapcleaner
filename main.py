@@ -13,7 +13,7 @@ TARGET_FILENAME = "telnet-raw.pcap"
 
 # Change STREAM_NUMBER to the stream number you want to follow.
 PW_Detected = 0
-pwlines=[]
+linesWithPasswords = []
 # open the pcap file, filtered for a single TCP stream
 cap = pyshark.FileCapture(
     FILENAME,
@@ -28,7 +28,7 @@ while True:
         # print data from the selected stream
         if PW_Detected == 1:
             print(p.number)
-            pwlines.append(int(p.number)-1)
+            linesWithPasswords.append(int(p.number) - 1)
         if p.telnet.data == "Password:":
             PW_Detected = 1
         if ord(p.telnet.data[0]) == 92:
@@ -38,11 +38,11 @@ while True:
     except AttributeError:  # Skip the ACKs.Data: \r
         pass
 
-print(pwlines)
-## read file
+print(linesWithPasswords)
+## read and edit file
 pkts = rdpcap(FILENAME)
-print (pkts)
-for i in pwlines:
+print(pkts)
+for i in linesWithPasswords:
     pkts[i]["Raw"].load = "x"
 
-wrpcap("mod.pcap",pkts)
+wrpcap("mod.pcap", pkts)
