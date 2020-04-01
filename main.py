@@ -4,9 +4,11 @@ Remove password from pcap file.
 """
 import pyshark
 from scapy.all import wrpcap, rdpcap
+import re
 
 FILENAME = "telnet-raw.pcap"
-TARGET_FILENAME = "telnet-raw.pcap"
+TARGET_FILENAME = "output.pcap"
+pattern = {"Password", "password", "Enter PASSCODE:"}
 
 PW_Detected = 0
 linesWithPasswords = []
@@ -14,6 +16,14 @@ linesWithPasswords = []
 cap = pyshark.FileCapture(
     FILENAME,
     display_filter='telnet')
+
+
+def find_pw(data, pattern):
+    for p in pattern:
+        if re.match(p, data, flags=0):
+            return True
+    return False
+
 
 while True:
     try:
@@ -25,7 +35,7 @@ while True:
         if PW_Detected == 1:
             print(p.number)
             linesWithPasswords.append(int(p.number) - 1)
-        if p.telnet.data == "Password:":
+        if find_pw(p.telnet.data, pattern):
             PW_Detected = 1
         if ord(p.telnet.data[0]) == 92:
             PW_Detected = 0
